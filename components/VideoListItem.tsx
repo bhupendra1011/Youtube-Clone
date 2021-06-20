@@ -21,14 +21,22 @@ type VideoListItemProps = {
 
 const VideoListItem = (props: VideoListItemProps) => {
     const { video } = props;
+    const minutes = Math.floor(video.duration / 60);
+    const seconds = video.duration % 60;
+    let viewsString = '';
+    if (video.views > 1000000) {
+        viewsString = (video.views / 1000000).toFixed(2) + ' m';
+    }
+    if (video.views > 1000) {
+        viewsString = (video.views / 1000).toFixed(2) + ' k';
+    }
     return (
         <View style={styles.videoCard}>
             {/* Video Image */}
             <View>
                 <Image style={styles.thumbnail} source={{ uri: video.thumbnail }} />
                 <View style={styles.timeContainer}>
-                    {/* TODO need to change */}
-                    <Text style={styles.time}>{video.duration}</Text>
+                    <Text style={styles.time}>{minutes}:{seconds.toString().padStart(2, '0')}</Text>
                 </View>
             </View>
             {/* Title Row */}
@@ -39,7 +47,7 @@ const VideoListItem = (props: VideoListItemProps) => {
                 {/* Middle Container : Titlle , SubTitle */}
                 <View style={styles.middleContainer}>
                     <Text style={styles.title}>{video.title}</Text>
-                    <Text style={styles.subTitle}>{video.user.name} {video.createdAt}</Text>
+                    <Text style={styles.subTitle}>{video.user.name} {viewsString} {video.createdAt}</Text>
                 </View>
 
                 {/* Icon Container */}
