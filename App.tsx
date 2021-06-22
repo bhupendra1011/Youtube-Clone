@@ -18,9 +18,7 @@ export default function App() {
   } else {
     return (
       <SafeAreaProvider>
-        {/* TODO: to uncomment  */}
-        {/* <Navigation colorScheme={colorScheme} /> */}
-        <VideoScreen />
+        <Navigation colorScheme={colorScheme} />
       </SafeAreaProvider>
     );
   }

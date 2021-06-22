@@ -1,5 +1,6 @@
 import React from 'react'
-import { StyleSheet, Text, View, Image } from 'react-native'
+import { StyleSheet, Text, View, Image, Pressable } from 'react-native'
+import { useNavigation } from "@react-navigation/native"
 import { Entypo } from '@expo/vector-icons';
 
 
@@ -30,8 +31,12 @@ const VideoListItem = (props: VideoListItemProps) => {
     if (video.views > 1000) {
         viewsString = (video.views / 1000).toFixed(2) + ' k';
     }
+    const navigation = useNavigation();
+    const openVideoPage = () => {
+        navigation.navigate("VideoScreen", { id: video.id })
+    }
     return (
-        <View style={styles.videoCard}>
+        <Pressable onPress={openVideoPage} style={styles.videoCard}>
             {/* Video Image */}
             <View>
                 <Image style={styles.thumbnail} source={{ uri: video.thumbnail }} />
@@ -54,7 +59,7 @@ const VideoListItem = (props: VideoListItemProps) => {
                 <Entypo name="dots-three-vertical" size={18} color="white" />
 
             </View>
-        </View>
+        </Pressable>
     )
 }
 
