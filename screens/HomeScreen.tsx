@@ -11,6 +11,7 @@ const HomeScreen = () => {
         <View>
             <FlatList data={videos} keyExtractor={item => item.id}
                 renderItem={({ item }) => <VideoListItem video={item}
+
                 />} />
         </View>
     )
