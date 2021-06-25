@@ -1,18 +1,52 @@
-import React from 'react'
-import { StyleSheet, Text, View, Image, SafeAreaView, ScrollView, FlatList, Pressable } from 'react-native'
+import React, { useState, useEffect } from 'react'
+import { StyleSheet, Text, View, Image, SafeAreaView, ScrollView, FlatList, Pressable, ActivityIndicator } from 'react-native'
 import { AntDesign } from '@expo/vector-icons';
 import BottomSheet from '@gorhom/bottom-sheet';
 
-import video from "../assets/data/video.json"
-import videos from "../assets/data/videos.json"
+import { useRoute } from '@react-navigation/native';
+
+//import video from "../assets/data/video.json"
+
 import VideoListItem from '../components/VideoListItem';
 import VideoPlayer from '../components/VideoPlayer';
 import VideoComments from '../components/VideoComments';
+import VideoComment from "../components/VideoComment";
+import { Video, Comment } from '../src/models';
+import { DataStore } from "aws-amplify"
 
 
 const VideoScreen = () => {
-
+    const [video, setVideo] = useState<Video | null | undefined>(null);
+    const [comments, setComments] = useState<Comment[]>([]);
     const commentsSheetRef = React.useRef<BottomSheet>(null);
+
+    const route = useRoute();
+    const videoId = route.params?.id;
+
+    useEffect(() => {
+        DataStore.query(Video, videoId).then(setVideo)
+    }, [videoId])
+
+    useEffect(() => {
+        const fetchComments = async () => {
+            if (!video) {
+                return;
+            }
+
+            const videoComments = (await DataStore.query(Comment)).filter(
+                (comment) => comment.videoID === video.id
+            );
+
+            setComments(videoComments);
+        };
+
+        fetchComments();
+    }, [video])
+
+
+    if (!video) {
+        return <ActivityIndicator color="white" style={{ flex: 1 }} size="large" />
+    }
 
     let viewsString = '';
     if (video.views > 1000000) {
@@ -27,6 +61,7 @@ const VideoScreen = () => {
         commentsSheetRef.current?.expand();
 
     }
+
     return (
         // TODO : remove bg color
         <View style={{ backgroundColor: "#1c1c1c", flex: 1 }}>
@@ -38,7 +73,7 @@ const VideoScreen = () => {
                 <View style={styles.videoInfoContainer}>
                     <Text style={styles.tags}>{video.tags}</Text>
                     <Text style={styles.title}>{video.title}</Text>
-                    <Text style={styles.subTitle}>{video.user.name} {viewsString} {video.createdAt} </Text>
+                    <Text style={styles.subTitle}>{video.User?.name} {viewsString} {video.createdAt} </Text>
                 </View>
 
                 {/* Action List */}
@@ -80,10 +115,10 @@ const VideoScreen = () => {
                 </View>
                 {/* User Info */}
                 <View style={styles.userInfo}>
-                    <Image style={styles.avatar} source={{ uri: video.user.image }} />
+                    <Image style={styles.avatar} source={{ uri: video.User?.image }} />
                     <View style={{ marginHorizontal: 10, flex: 1 }}>
-                        <Text style={{ color: "white", fontSize: 18 }}> {video.user.name} </Text>
-                        <Text style={{ color: "lightgrey", fontSize: 18 }}> {video.user.subscribers} Subscribers </Text>
+                        <Text style={{ color: "white", fontSize: 18 }}> {video.User?.name} </Text>
+                        <Text style={{ color: "lightgrey", fontSize: 18 }}> {video.User?.subscribers} Subscribers </Text>
                     </View>
                     <Text style={{ color: "red", fontSize: 20, fontWeight: "bold", padding: 10 }} >Subscribe</Text>
                 </View>
@@ -92,7 +127,9 @@ const VideoScreen = () => {
                 {/* Comments */}
                 <Pressable onPress={openComments} style={{ padding: 10, marginVertical: 10 }}>
                     <Text style={{ color: "white", fontWeight: "bold" }}>Comments 330</Text>
-                    {/* Comment Component */}
+                    {/* Comment Component  1 only , rest on bottom sheet*/}
+                    {comments.length > 0 && <VideoComment comment={comments[0]} />}
+
 
                 </Pressable>
 
@@ -100,7 +137,7 @@ const VideoScreen = () => {
                 <BottomSheet ref={commentsSheetRef} snapPoints={[0, '80%']} index={0}
                     backgroundComponent={({ style }) => <View style={[style, { backgroundColor: "grey" }]} />}
                 >
-                    <VideoComments />
+                    <VideoComments comments={comments} videoID={video.id} />
                 </BottomSheet>
             </View>
 
@@ -110,19 +147,6 @@ const VideoScreen = () => {
     )
 }
 
-const VideoScreenWithRecommendation = () => {
-    return (
-        <SafeAreaView style={{ backgroundColor: "#1c1c1c", flex: 1 }}>
-            <FlatList
-                data={videos}
-                keyExtractor={item => item.id}
-                renderItem={({ item }) => <VideoListItem video={item} />}
-                ListHeaderComponent={VideoScreen}
-            />
-        </SafeAreaView>
-
-    )
-}
 
 // if you want to add recomendation videos as well then use BottomSheetModalProvider ,BottomSheetModal
 export default VideoScreen
