@@ -17,6 +17,7 @@ import TabOneScreen from '../screens/TabOneScreen';
 import TabTwoScreen from '../screens/TabTwoScreen';
 import { BottomTabParamList, TabOneParamList, TabTwoParamList } from '../types';
 import VideoScreen from '../screens/VideoScreen';
+import VideoUploadScreen from '../screens/VideoUploadScreen';
 
 const BottomTab = createBottomTabNavigator<BottomTabParamList>();
 
@@ -46,7 +47,7 @@ export default function BottomTabNavigator() {
       />
       <BottomTab.Screen
         name="New"
-        component={TabTwoNavigator}
+        component={TabThreeNavigator}
         options={{
           tabBarIcon: ({ color }) => <AntDesign name="pluscircleo" size={24} color={color} />,
         }}
@@ -128,5 +129,20 @@ function TabTwoNavigator() {
         options={{ headerTitle: 'Tab Two Title' }}
       />
     </TabTwoStack.Navigator>
+  );
+}
+
+//for new tab:upload
+const TabThreeStack = createStackNavigator<TabTwoParamList>();
+
+function TabThreeNavigator() {
+  return (
+    <TabThreeStack.Navigator>
+      <TabThreeStack.Screen
+        name="VideoUpload"
+        component={VideoUploadScreen}
+        options={{ headerTitle: 'Upload Video' }}
+      />
+    </TabThreeStack.Navigator>
   );
 }
