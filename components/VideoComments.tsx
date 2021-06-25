@@ -5,7 +5,7 @@ import { BottomSheetFlatList } from '@gorhom/bottom-sheet' // handles scrolls co
 
 import { DataStore, Auth } from "aws-amplify";
 
-import { Comment } from '../src/models';
+import { Comment, User } from '../src/models';
 
 import VideoComment from './VideoComment'
 
@@ -22,13 +22,21 @@ const VideoComments = ({ comments, videoID }: VideoCommentProps) => {
         // get current authenticated user;
         const userInfo = await Auth.currentAuthenticatedUser();
 
+        const userSub = userInfo.attributes.sub;
+        const user = (await DataStore.query(User)).find(u => u.sub === userSub)
+
+        if (!user) {
+            console.error("user not found");
+            return;
+        }
+
         await DataStore.save(new Comment({
             comment: newComment,
             likes: 0,
             dislikes: 0,
             replies: 0,
             videoID,
-            userID: userInfo.attributes.sub
+            userID: user.id
         })
         );
         setNewComment("");
