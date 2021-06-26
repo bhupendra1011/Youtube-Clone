@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, Image, Pressable } from 'react-native'
 import { useNavigation } from "@react-navigation/native"
 import { Entypo } from '@expo/vector-icons';
 import { Video } from '../src/models';
-import { Storage } from "aws-amplify"
+import { Storage, Analytics } from "aws-amplify"
 
 
 type VideoListItemProps = {
@@ -37,6 +37,12 @@ const VideoListItem = (props: VideoListItemProps) => {
     }
     const navigation = useNavigation();
     const openVideoPage = () => {
+
+        //track click on video
+        Analytics.record({
+            name: 'VideoListItemClick'
+        })
+
         navigation.navigate("VideoScreen", { id: video.id })
     }
     return (
