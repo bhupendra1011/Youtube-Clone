@@ -6,9 +6,12 @@ import * as ImagePicker from 'expo-image-picker';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from "uuid";
 import { Storage } from "aws-amplify";
+import * as VideoThumbnails from 'expo-video-thumbnails';
 
 export default function VideoUploadScreen() {
     const [video, setVideo] = useState<string | null>(null);
+    const [thumbnail, setThumbnail] = useState<string | null>(null);
+    const [image, setImage] = useState(null);
 
     useEffect(() => {
         (async () => {
@@ -35,6 +38,36 @@ export default function VideoUploadScreen() {
         }
     };
 
+    const generateThumbnail = async () => {
+        if (!video) return null;
+        try {
+            const { uri } = await VideoThumbnails.getThumbnailAsync(
+                video,
+                {
+                    time: 1000,
+                }
+            );
+
+            //Upload image to Cloud.
+            try {
+                const response = await fetch(uri);
+                const blob = await response.blob();
+                const fileKey = `${uuidv4()}.jpg`;
+                await Storage.put(fileKey, blob);
+                return fileKey
+            } catch (err) {
+                console.log('Error uploading file:', err);
+                return null;
+            }
+
+
+        } catch (e) {
+            console.warn("Error in Generating thumbnail");
+            return null;
+        }
+
+    }
+
     const uploadVideo = async (): Promise<string | null> => {
         if (!video) return null;
         try {
@@ -54,9 +87,8 @@ export default function VideoUploadScreen() {
     const uploadPost = async () => {
         if (!video) return;
         const fileKey = await uploadVideo();
-        console.log(`File with key ${fileKey} uploaded`)
-
-
+        const thumbnailKey = await generateThumbnail();
+        console.log(`Video + Thumbnail uploaded`);
     }
 
     return (
