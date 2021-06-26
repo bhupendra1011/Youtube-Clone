@@ -1,8 +1,9 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { StyleSheet, Text, View, Image, Pressable } from 'react-native'
 import { useNavigation } from "@react-navigation/native"
 import { Entypo } from '@expo/vector-icons';
 import { Video } from '../src/models';
+import { Storage } from "aws-amplify"
 
 
 type VideoListItemProps = {
@@ -11,6 +12,20 @@ type VideoListItemProps = {
 
 const VideoListItem = (props: VideoListItemProps) => {
     const { video } = props;
+
+    const [image, setImage] = useState<string | null>(null)
+
+    useEffect(() => {
+        //check if url is not from storage
+        if (video.thumbnail.startsWith('http')) {
+            setImage(video.thumbnail)
+        } else {
+            Storage.get(video.thumbnail).then(setImage);
+        }
+
+    }, [video])
+
+
     const minutes = Math.floor(video.duration / 60);
     const seconds = video.duration % 60;
     let viewsString = '';
@@ -28,7 +43,8 @@ const VideoListItem = (props: VideoListItemProps) => {
         <Pressable onPress={openVideoPage} style={styles.videoCard}>
             {/* Video Image */}
             <View>
-                <Image style={styles.thumbnail} source={{ uri: video.thumbnail }} />
+                {/* we have saved s3 keys in video thumbnail, so need to fetch url */}
+                <Image style={styles.thumbnail} source={{ uri: image }} />
                 <View style={styles.timeContainer}>
                     <Text style={styles.time}>{minutes}:{seconds.toString().padStart(2, '0')}</Text>
                 </View>

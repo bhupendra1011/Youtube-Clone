@@ -6,6 +6,7 @@ import BottomSheet from '@gorhom/bottom-sheet';
 import { useRoute } from '@react-navigation/native';
 
 //import video from "../assets/data/video.json"
+import { Storage } from "aws-amplify"
 
 import VideoListItem from '../components/VideoListItem';
 import VideoPlayer from '../components/VideoPlayer';
@@ -17,15 +18,37 @@ import { DataStore } from "aws-amplify"
 
 const VideoScreen = () => {
     const [video, setVideo] = useState<Video | null | undefined>(null);
+    const [videoUrl, setVideoUrl] = useState<string | null>(null);
     const [comments, setComments] = useState<Comment[]>([]);
     const commentsSheetRef = React.useRef<BottomSheet>(null);
 
+
     const route = useRoute();
     const videoId = route.params?.id;
+    const [image, setImage] = useState<string | null>(null)
+
 
     useEffect(() => {
         DataStore.query(Video, videoId).then(setVideo)
     }, [videoId])
+
+    useEffect(() => {
+        if (!video) return;
+        //check if video url is not from S3 storage
+        if (video?.videoUrl.startsWith('http')) {
+            setVideoUrl(video.videoUrl)
+        } else {
+            Storage.get(video?.videoUrl).then(setVideoUrl);
+        }
+
+        //check if video thumbnail is not from S3 storage
+        if (video?.thumbnail.startsWith('http')) {
+            setImage(video.thumbnail)
+        } else {
+            Storage.get(video.thumbnail).then(setImage);
+        }
+
+    }, [video])
 
     useEffect(() => {
         const fetchComments = async () => {
@@ -66,7 +89,7 @@ const VideoScreen = () => {
         // TODO : remove bg color
         <View style={{ backgroundColor: "#1c1c1c", flex: 1 }}>
             {/* Video Player */}
-            <VideoPlayer videoURI={video.videoUrl} thumbnailURI={video.thumbnail} />
+            <VideoPlayer videoURI={videoUrl} thumbnailURI={video.thumbnail} />
 
             <View style={{ flex: 1 }}>
                 {/* Video Info */}
